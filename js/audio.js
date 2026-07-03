@@ -3,7 +3,20 @@
    completionAudio() owner, and mic + pitch detection. Lazy init: nothing
    touches AudioContext or getUserMedia at import time (node-importable).
    ============================================================ */
-import { midiToFreq, cadenceChords, resolutionPath, comfy } from './theory.js';
+import { midiToFreq, midiToFreqJust, cadenceChords, resolutionPath, comfy } from './theory.js';
+
+/* ---------- tuning context ----------
+   Set at round start by machine.js (and immediately by the settings toggle).
+   When just intonation is on, every synthesized frequency snaps to the
+   5-limit ratio for its pitch class relative to the current tonic. */
+const tuning = { just:false, tonic:60 };
+export function setTuning(just, tonicMidi){
+  tuning.just = !!just;
+  if(tonicMidi!=null) tuning.tonic = tonicMidi;
+}
+export function noteFreq(midi){
+  return tuning.just ? midiToFreqJust(midi, tuning.tonic) : midiToFreq(midi);
+}
 
 const AudioCtx = typeof window!=='undefined' ? (window.AudioContext || window.webkitAudioContext) : null;
 let ac = null;
@@ -21,7 +34,7 @@ export const INSTRUMENTS = {
 export function playNote(instName, midi, when, dur, gainScale=1){
   const ctx = ensureAudio();
   const inst = INSTRUMENTS[instName];
-  const f = midiToFreq(midi);
+  const f = noteFreq(midi);
   const master = ctx.createGain();
   master.connect(ctx.destination);
   const peak = 0.16 * gainScale;
@@ -115,9 +128,9 @@ export function startDrone(instUnused, tonicMidi, level){
   g.gain.value = 0.05 * level;
   g.connect(ctx.destination);
   const osc = ctx.createOscillator();
-  osc.type='sine'; osc.frequency.value = midiToFreq(droneMidi);
+  osc.type='sine'; osc.frequency.value = noteFreq(droneMidi);
   const osc2 = ctx.createOscillator();
-  osc2.type='sine'; osc2.frequency.value = midiToFreq(droneMidi-12);
+  osc2.type='sine'; osc2.frequency.value = noteFreq(droneMidi-12);
   const g2=ctx.createGain(); g2.gain.value=0.5; osc2.connect(g2); g2.connect(g);
   osc.connect(g); osc.start(); osc2.start();
   droneNodes = {osc,osc2,g};

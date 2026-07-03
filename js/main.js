@@ -105,6 +105,7 @@ function init(){
   /* ---- toggles ---- */
   const bind=(id,key,extra)=>{ el(id).onchange=e=>{ settings[key]=e.target.checked; if(extra)extra(); saveSoon(); }; };
   bind('resolveToggle','resolveOn');
+  bind('justToggle','justIntonation', ()=>A.setTuning(settings.justIntonation));
   bind('autoToggle','autoAdvance');
   bind('autoStageToggle','autoStage');
   bind('focusToggle','focusWeak');
@@ -139,10 +140,11 @@ function init(){
   });
 
   /* ---- apply restored settings to visible controls ---- */
-  ['resolveToggle','autoToggle','autoStageToggle','focusToggle','speedToggle'].forEach((id,i)=>{
-    el(id).checked=[settings.resolveOn,settings.autoAdvance,settings.autoStage,settings.focusWeak,settings.speedMode][i];
+  ['resolveToggle','autoToggle','autoStageToggle','focusToggle','speedToggle','justToggle'].forEach((id,i)=>{
+    el(id).checked=[settings.resolveOn,settings.autoAdvance,settings.autoStage,settings.focusWeak,settings.speedMode,settings.justIntonation][i];
   });
   el('freeStageToggle').checked=savedFreeStages;
+  A.setTuning(settings.justIntonation);
   ui.setSpeedTargetVisible(settings.speedMode);
   document.querySelectorAll('#instrument button').forEach(x=>x.setAttribute('aria-pressed', x.textContent.toLowerCase()===settings.currentInstrument));
   document.querySelectorAll('#doMode button').forEach(x=>x.setAttribute('aria-pressed', x.dataset.mode===settings.doMode));

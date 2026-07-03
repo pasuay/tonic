@@ -169,5 +169,23 @@ section('persistence roundtrip');
   ok(blob.settings.practiceMode==='recognize', 'settings serialized');
 }
 
+section('just intonation toggle');
+{
+  const t = document.getElementById('justToggle');
+  ok(!!t, 'toggle present in settings drawer');
+  ok(t.checked===false && settings.justIntonation===false, 'defaults off (ET)');
+  const { noteFreq, setTuning } = await import('../js/audio.js');
+  const T2 = await import('../js/theory.js');
+  setTuning(false, 60);                      // pin tonic so the check is deterministic
+  t.checked = true; t.dispatchEvent(new window.Event('change'));
+  ok(settings.justIntonation===true, 'flip updates setting');
+  ok(Math.abs(noteFreq(64) - T2.midiToFreq(60)*5/4) < 1e-9, 'tuning applied immediately (no round needed)');
+  await sleep(500);                          // saveSoon debounce
+  const blob2 = JSON.parse(localStorage.getItem('tonic-trainer-v1'));
+  ok(blob2.settings.justIntonation===true, 'flip persisted');
+  t.checked = false; t.dispatchEvent(new window.Event('change'));
+  ok(settings.justIntonation===false, 'flip back');
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail?1:0);

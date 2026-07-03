@@ -269,5 +269,38 @@ ok(M.STAGES.length===7 && M.STAGES.every((s,i)=>s.id===i), 'stage ids sequential
 ok(M.STAGES[6].findDo===true && !M.STAGES.some(s=>s.name==='Chromatic'), 'Find do present, Chromatic dropped');
 ok(M.TIMING.findDoBreath===1300 && M.TIMING.clickNoteDur===0.5, 'timing constants carried over');
 
+/* ---------- 11. just intonation (5-limit, tonic-relative) ---------- */
+section('just intonation');
+import { setTuning, noteFreq } from '../js/audio.js';
+{
+  const f = T.midiToFreq, near = (a,b)=>Math.abs(a-b)<1e-9;
+  // exact ratios against tonic C4=60
+  ok(near(T.midiToFreqJust(60,60), f(60)),        'tonic = 1/1');
+  ok(near(T.midiToFreqJust(64,60), f(60)*5/4),    'mi = 5/4');
+  ok(near(T.midiToFreqJust(67,60), f(60)*3/2),    'so = 3/2');
+  ok(near(T.midiToFreqJust(69,60), f(60)*5/3),    'la = 5/3');
+  ok(near(T.midiToFreqJust(71,60), f(60)*15/8),   'ti = 15/8');
+  // octaves are pure 2/1 and pitch class folds correctly below the tonic
+  ok(near(T.midiToFreqJust(76,60), f(60)*5/4*2),  'mi +1 octave = 5/2');
+  ok(near(T.midiToFreqJust(57,60), f(60)*5/3/2),  'la below tonic = 5/6');
+  // la-based minor via the same table: do in la-minor (offset 3) = 6/5
+  ok(near(T.midiToFreqJust(60,57), f(57)*6/5),    'minor: do = 6/5 over la-tonic');
+  // every ratio within a syntonic-comma-ish distance of ET (guards table typos)
+  ok(T.JI_RATIOS.every((r,pc)=>Math.abs(1200*Math.log2(r)-100*pc)<22), 'all 12 ratios within 22¢ of ET');
+  ok(T.JI_RATIOS.length===12, 'full chromatic table (minor V leading tone covered)');
+  // audio tuning context: ET by default, JI when set, ET again when cleared
+  ok(near(noteFreq(64), f(64)), 'noteFreq = ET when off');
+  setTuning(true, 60);
+  ok(near(noteFreq(64), f(60)*5/4), 'noteFreq = JI when on');
+  ok(near(noteFreq(48), f(48)), 'tonic pitch class identical in both tunings');
+  setTuning(false);
+  ok(near(noteFreq(64), f(64)), 'toggle off restores ET');
+  // needle math: singing exactly the JI target reads 0¢; ET mi vs JI mi ≈ +13.7¢
+  ok(Math.abs(T.centsFromFreq(f(60)*5/4, f(60)*5/4))<1e-9, 'centsFromFreq zero at target');
+  const dev = T.centsFromFreq(f(64), f(60)*5/4);
+  ok(Math.abs(dev-13.686)<0.01, `ET mi is +13.69¢ above just mi (got ${dev.toFixed(3)})`);
+  ok(settings.justIntonation===false, 'justIntonation defaults OFF (ET)');
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail?1:0);

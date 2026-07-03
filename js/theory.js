@@ -36,6 +36,19 @@ export function noteName(midi){ return NOTE_NAMES[((midi%12)+12)%12]; }
 export const A4 = 440;
 export function midiToFreq(m){ return A4 * Math.pow(2,(m-69)/12); }
 
+/* ---------- just intonation (5-limit), ratios relative to the tonic ----------
+   Indexed by pitch-class offset from the tonic (0-11). Minor is la-based, so
+   the same table serves both qualities: the tonic midi is the tonal centre
+   (la in minor), e.g. do in la-minor sits at offset 3 -> 6/5.
+   Comma choices recorded: re=9/8, minor seventh=9/5 (5-limit, not 16/9). */
+export const JI_RATIOS = [1/1, 16/15, 9/8, 6/5, 5/4, 4/3, 45/32, 3/2, 8/5, 5/3, 9/5, 15/8];
+export function midiToFreqJust(m, tonicMidi){
+  const off = m - tonicMidi;
+  const oct = Math.floor(off/12);
+  const pc  = ((off % 12) + 12) % 12;
+  return midiToFreq(tonicMidi) * JI_RATIOS[pc] * Math.pow(2, oct);
+}
+
 /* ---------- pitch ranges ---------- */
 export const PITCH_CEILING = 84; // C6 — general safety ceiling
 export const PITCH_FLOOR   = 48; // C3
@@ -172,8 +185,12 @@ export function makeFindDoMelody(len, pool, quality, pick){
 
 /* cents between a frequency and a target midi note; null if no pitch */
 export function centsFromMidi(freq, targetMidi){
+  return centsFromFreq(freq, midiToFreq(targetMidi));
+}
+/* cents between a frequency and a target frequency; null if no pitch */
+export function centsFromFreq(freq, targetFreq){
   if(freq<=0) return null;
-  return 1200*Math.log2(freq/midiToFreq(targetMidi));
+  return 1200*Math.log2(freq/targetFreq);
 }
 /* fold to nearest octave: match pitch-class in ANY octave, range (-600,600] */
 export function foldCents(cents){

@@ -199,6 +199,7 @@ export function newRound(){
   ui.restylePads(padsSpec());
 
   S.tonic = pickTonic();
+  A.setTuning(settings.justIntonation, S.tonic);
   const pool = activePool();
 
   if(!S.drill){
@@ -382,7 +383,7 @@ function startSingLoop(){
     if(!S.awaiting){ return; }
     if(frame++ % 3 !== 0){ singRAF=requestAnimationFrame(loop); return; } // ~20Hz detection
     const f = A.detectPitch();
-    const folded = T.foldCents(T.centsFromMidi(f, S.sing.targetMidi));
+    const folded = T.foldCents(T.centsFromFreq(f, A.noteFreq(S.sing.targetMidi)));
     ui.needle(f, folded, SING_TOLERANCE);
     if(f>0 && folded!==null && Math.abs(folded)<=SING_TOLERANCE){
       if(!S.sing.inTuneSince) S.sing.inTuneSince=performance.now();

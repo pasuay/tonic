@@ -10,6 +10,7 @@ export const settings = {
   keyQuality:'major',      // 'major' | 'minor' | 'both'
   cadenceStyle:'classic',  // key of CADENCES or 'shuffle'
   resolveOn:true,
+  justIntonation:false,    // just (5-limit, tonic-relative) vs equal temperament
   autoAdvance:true,
   autoStage:false,
   focusWeak:true,          // on by default
