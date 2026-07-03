@@ -1,0 +1,11 @@
+{
+  "type": "module",
+  "devDependencies": {
+    "jsdom": "^29.1.1"
+  },
+  "scripts": {
+    "test": "node test/run.mjs",
+    "test:ui": "node test/interaction.mjs",
+    "test:all": "node test/run.mjs && node test/interaction.mjs"
+  }
+}

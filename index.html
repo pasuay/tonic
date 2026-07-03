@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tonic — relative pitch trainer for pop musicians</title>
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <div class="brand">Tonic<span class="dot">.</span></div>
+      <div class="tag">You already play it by ear. Now name what you hear.<br><span class="tag-sub">Ear training for pop musicians &amp; producers — not the conservatory.</span></div>
+    </div>
+  </header>
+
+  <div class="stages" id="stages"></div>
+
+  <div class="modebar">
+    <div class="seg" id="practiceMode">
+      <button data-pm="recognize" aria-pressed="true">Recognize</button>
+      <button data-pm="sing">Sing-back</button>
+    </div>
+  </div>
+
+  <div class="console">
+    <div class="transport">
+      <button class="play" id="play">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        <span id="playLabel">Play</span>
+      </button>
+      <button class="replay" id="replayCadence" disabled>Replay key</button>
+      <button class="replay" id="replayNote" disabled>Replay note</button>
+      <div class="clock">
+        <div class="rt" id="rt">—</div>
+        <div class="lbl">reaction</div>
+        <div class="spdtgt hidden" id="spdTarget"></div>
+      </div>
+    </div>
+
+    <div class="prompt" id="prompt">Choose an instrument and press <b>Play</b> to begin.</div>
+
+    <!-- SING-BACK panel: shown only in sing mode -->
+    <div class="singpanel hidden" id="singpanel">
+      <div class="sing-target">sing <span id="singTarget">—</span></div>
+      <div class="needle-wrap">
+        <div class="needle-scale">
+          <span class="tick flat">♭</span>
+          <span class="tick center">•</span>
+          <span class="tick sharp">♯</span>
+        </div>
+        <div class="needle" id="needle"></div>
+        <div class="needle-band" id="needleBand"></div>
+      </div>
+      <div class="sing-readout"><span id="singHz">—</span> · <span id="singCents">listening…</span></div>
+    </div>
+
+    <div class="pads" id="pads"></div>
+
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <div class="unlock hidden" id="unlock">
+    <div class="unlock-txt"><span class="unlock-star">★</span> <b id="unlockName"></b> unlocked</div>
+    <div class="unlock-actions">
+      <button id="unlockGo">Enter stage</button>
+      <button id="unlockStay" class="ghost">Stay here</button>
+    </div>
+  </div>
+
+  <div class="unlock hidden" id="drillBanner">
+    <div class="unlock-txt">🎯 You often confuse <b id="drillName"></b> — drill just this pair?</div>
+    <div class="unlock-actions">
+      <button id="drillGo">Drill it</button>
+      <button id="drillSkip" class="ghost">Not now</button>
+    </div>
+  </div>
+
+  <div class="gamerow">
+    <div class="levelcard">
+      <div class="lvltop">
+        <div class="lvlbadge"><span id="lvlNum">1</span></div>
+        <div>
+          <div class="lvltitle" id="lvlTitle">Tourist</div>
+          <div class="xptext" id="xpText">0 / 100 XP</div>
+        </div>
+      </div>
+      <div class="xpbar"><div class="xpfill" id="xpFill"></div></div>
+    </div>
+    <div class="goalcard">
+      <svg class="ring" viewBox="0 0 60 60">
+        <circle class="ring-bg" cx="30" cy="30" r="26"/>
+        <circle class="ring-fill" id="ringFill" cx="30" cy="30" r="26"/>
+        <text x="30" y="34" id="ringLabel" text-anchor="middle">0/20</text>
+      </svg>
+      <div class="goaltext" id="goalMsg">notes to daily goal</div>
+    </div>
+  </div>
+
+  <div class="masterywrap">
+    <div class="mastery-label">Degree mastery <span>· this stage</span></div>
+    <div class="mastery" id="mastery"></div>
+    <div class="conflist" id="conflist"></div>
+  </div>
+
+  
+
+  <div class="stats">
+    <div class="stat"><div class="v" id="sAcc">—</div><div class="k">accuracy</div></div>
+    <div class="stat"><div class="v" id="sStreak">0</div><div class="k">streak</div></div>
+    <div class="stat"><div class="v" id="sBest">0</div><div class="k">best</div></div>
+    <div class="stat"><div class="v" id="sDays">0</div><div class="k">day streak</div></div>
+    <div class="stat"><div class="v" id="sAvg">—</div><div class="k">avg time</div></div>
+    <div class="stat"><div class="v" id="sCount">0</div><div class="k">answered</div></div>
+  </div>
+
+  <details class="settings">
+    <summary>Settings</summary>
+    <div class="rack">
+    <div class="field">
+      <label>Solfège</label>
+      <div class="seg" id="doMode">
+        <button data-mode="movable" aria-pressed="true">Movable do</button>
+        <button data-mode="fixed">Fixed do · key of C</button>
+      </div>
+      <div class="modehint" id="modeHint">Do = the tonic of each key. Trains function.</div>
+    </div>
+    <div class="field">
+      <label>Instrument</label>
+      <div class="seg" id="instrument"></div>
+    </div>
+    <div class="field">
+      <label>Key</label>
+      <div class="seg" id="keyQuality">
+        <button data-q="major" aria-pressed="true">Major</button>
+        <button data-q="minor">Minor</button>
+        <button data-q="both">Both</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Key sound</label>
+      <div class="seg" id="cadenceStyle">
+        <button data-c="classic" aria-pressed="true">I–IV–V–I</button>
+        <button data-c="pop1">I–V–vi–IV</button>
+        <button data-c="pop2">vi–IV–I–V</button>
+        <button data-c="jazz">ii–V–I</button>
+        <button data-c="shuffle">Shuffle</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Aids</label>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <label class="toggle"><input type="checkbox" id="resolveToggle" checked> Resolve to do</label>
+        <label class="toggle"><input type="checkbox" id="autoToggle" checked> Auto-advance</label>
+        <label class="toggle"><input type="checkbox" id="autoStageToggle"> Auto-advance stages</label>
+        <label class="toggle"><input type="checkbox" id="freeStageToggle" checked> Unlock all stages</label>
+        <label class="toggle"><input type="checkbox" id="focusToggle" checked> Focus weak notes</label>
+        <label class="toggle"><input type="checkbox" id="speedToggle"> Speed goal</label>
+      </div>
+    </div>
+    <div class="field">
+      <label>Data</label>
+      <button class="replay" id="resetProgress" title="Clear all saved stats, mastery and settings">Reset progress</button>
+    </div>
+    </div>
+  </details>
+
+  <div class="note refs">
+    <details>
+      <summary>Why this works</summary>
+      <p style="margin-bottom:8px">Each round plays a short <b>I–IV–V–I cadence</b> to plant a key in your ear, then a single note. Your job is to name its <b>function</b> (do, re, mi…) relative to that key — not the interval from the last note. Re-hearing the key every round stops you slipping into interval-chaining, which is the habit that leaves you needing an instrument to find "do".<sup>1</sup></p>
+      <p style="margin-bottom:8px">After each answer, the note <b>resolves down (or up) to the tonic</b> through the real scale degrees — fa→mi→re→do, ti→do — so you hear where it wants to go. Sounding a degree and letting it settle to "do" is the core of the movable-do / Kodály tradition for building the inner ear.<sup>2</sup> Stages are introduced in order, simplest first, which mirrors how that tradition sequences learning.<sup>3</sup></p>
+      <p style="margin-bottom:8px">The pad <b>colors encode tonal tension</b>, not absolute pitch: the stable tonic-triad degrees (do, mi, so) glow warm; the restless tendency tones (fa, ti) glow cool. This is a learning scaffold with real precedent, but note-colour is idiosyncratic in actual synesthetes and won't give you absolute pitch. So the color <b>fades as you advance</b>: full in Stage 1, gone by the later stages, forcing you to hear function without the visual prop.</p>
+      <p style="margin-bottom:8px"><b>Find do</b> removes the cadence entirely: a short melody plays cold and you must infer the key from the melody alone before answering. That inference draws on the tonal hierarchy your ear already carries — the well-replicated finding that listeners internalise which tones are stable in a key and can locate a tonic from just a few notes of context.<sup>4</sup></p>
+      <p style="margin-bottom:8px"><b>Recognize vs. Sing-back.</b> Clicking a name trains sound→name (recognition). Sing-back flips it: the app names a degree, you sing that pitch against the key, and the mic checks how close you land. That trains name→sound (production) — the direction you use when you're playing and need to find a note. It grades your pitch, in any octave, not the word you sang. Together the two modes wire both directions of the link.</p>
+      <p><b>Practise a little every day.</b> That habit, not any single feature, is what the research consistently points to.</p>
+    <div class="refs-head">References</div>
+      <ol>
+      <li><span class="r-claim">A tonal context reliably aids pitch perception.</span> Marmel et al., a diatonic context gave a significant advantage over no context, independent of years of training. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5640898/" target="_blank" rel="noopener">Familiar Tonal Context Improves Accuracy of Pitch Interval Perception</a>, Frontiers in Psychology (2017).</li>
+      <li><span class="r-claim">Resolving degrees to the tonic builds the inner ear.</span> Movable-do solfège trains a sense of tonal function and inner hearing by relating each pitch to the tonic. <a href="https://www.oake.org/the-kodaly-concept/" target="_blank" rel="noopener">Organization of American Kodály Educators</a>; <a href="https://en.wikipedia.org/wiki/Kod%C3%A1ly_method" target="_blank" rel="noopener">Kodály method</a>.</li>
+      <li><span class="r-claim">Sequenced, simplest-first stages.</span> The Kodály approach introduces scale degrees gradually, in a set order — simple concepts first, then built upon. <a href="https://www.masterclass.com/articles/kodaly-method-guide" target="_blank" rel="noopener">Kodály Method principles</a>. Comparative sight-singing gains reported for movable-do training vs. traditional. <a href="https://en.wikipedia.org/wiki/Kod%C3%A1ly_method" target="_blank" rel="noopener">Kodály method — outcomes</a>.</li>
+      <li><span class="r-claim">Listeners infer the key from a short melody alone.</span> Probe-tone experiments established the tonal hierarchy (tonic and tonic triad rated most stable); perceptual key-finding tests show tonality is inferred from the opening few notes of real pieces. <a href="https://online.ucpress.edu/mp/article/38/5/425/117147/Probe-Tone-Paradigm-Reveals-Less-Differentiated" target="_blank" rel="noopener">Krumhansl &amp; Kessler probe-tone paradigm (overview)</a>; <a href="https://www.researchgate.net/publication/7503748_Perceptual_Tests_of_an_Algorithm_for_Musical_Key-Finding" target="_blank" rel="noopener">Perceptual Tests of a Key-Finding Algorithm</a>.</li>
+    </ol>
+    <p class="refs-foot">Summaries are paraphrased. Follow the links for the primary sources; nothing here is a substitute for a teacher.</p>
+    </details>
+  </div>
+
+</div>
+
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
