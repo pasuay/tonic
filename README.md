@@ -17,13 +17,11 @@ npm run test:ui     # interaction smoke tests (jsdom; ~30s, real round flows)
 npm run test:all
 ```
 
-## Deploy (one-time setup)
-1. Create an empty GitHub repo, then from this folder:
-   `git remote add origin <your-repo-url> && git push -u origin main`
-2. GitHub Actions runs the full test suite on every push (`.github/workflows/test.yml`).
-3. On https://app.netlify.com: **Add new site → Import an existing project** → pick the repo.
-   `netlify.toml` is already configured (static publish, no build step).
-Every push now tests and deploys automatically. Mic requires the https URL Netlify provides.
+## Deploy
+Every push to `main` runs the full test suite and, if green, deploys to GitHub Pages:
+**https://pasuay.github.io/tonic/** (`.github/workflows/ci.yml` — tests gate the deploy).
+Netlify remains an option for private-repo hosting: `netlify.toml` is configured
+(Add new site → Import an existing project → pick this repo).
 
 ## Architecture
 - `js/theory.js` — pure music theory (degrees, cadences, K-S key-clarity gate, generators)
